@@ -6,7 +6,7 @@ import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
 import { FaEdit } from "react-icons/fa";
 import { BsFillTrash3Fill, BsCheckSquareFill, BsXCircleFill, BsDownload } from "react-icons/bs";
-
+import { API_URL } from "../config";
 
 const Home = () => {
     const navigate = useNavigate();
@@ -19,7 +19,7 @@ const Home = () => {
     const [userRole, setUserRole] = useState("");
 
     const [documento, setDocumento] = useState("");
-    const [razonSocial, setRazonSocial] = useState("");
+    const [razon_social, setrazon_social] = useState("");
     const [email, setEmail] = useState("");
     const [fechaRegistro, setFechaRegistro] = useState("");
     const [telefono, setTelefono] = useState("");
@@ -38,19 +38,23 @@ const Home = () => {
         const token = localStorage.getItem("token");
         setUserRole(localStorage.getItem("userRole"));
         
-        
         if (!token) {
             navigate("/");
             return;
         }
 
         try {
-            const response = await axios.get("http://localhost:8080/api/v1/home", {
+            const response = await axios.get(`${API_URL}/api/v1/home`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setData(response.data);
+            const formattedData = response.data.map(empresa => ({
+                ...empresa,
+                fechaRegistro: empresa.fechaRegistro ? empresa.fechaRegistro.split('T')[0] : ''
+            }));
 
-            const municipiosResponse = await axios.get("http://localhost:8080/api/v1/getMunicipio", {
+            setData(formattedData);
+
+            const municipiosResponse = await axios.get(`${API_URL}/api/v1/getMunicipio`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setMunicipios(municipiosResponse.data);
@@ -75,13 +79,13 @@ const Home = () => {
     const crearComerciante = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem("token");
-        const endpoint = selectedId ? `http://localhost:8080/api/v1/updateComerciante/${selectedId}` : "http://localhost:8080/api/v1/createComerciante";
+        const endpoint = selectedId ? `${API_URL}/api/v1/updateComerciante/${selectedId}` : `${API_URL}/api/v1/createComerciante`;
         const method = selectedId ? "put" : "post";
 
         try {
             await axios[method](endpoint, {
                 documento,
-                razonSocial,
+                razon_social,
                 municipio,
                 telefono,
                 email,
@@ -106,7 +110,7 @@ const Home = () => {
     const editar = (empresa) => {
         setSelectedId(empresa.id);
         setDocumento(empresa.documento);
-        setRazonSocial(empresa.razonSocial);
+        setrazon_social(empresa.razon_social);
         setEmail(empresa.email);
         setFechaRegistro(empresa.fechaRegistro);
         setTelefono(empresa.telefono);
@@ -121,7 +125,7 @@ const Home = () => {
         }
 
         try {
-            await axios.delete(`http://localhost:8080/api/v1/deleteComerciante/${id}`, {
+            await axios.delete(`${API_URL}/api/v1/deleteComerciante/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -139,10 +143,10 @@ const Home = () => {
 
     const activeOrInactive = async (id, p_estado) => {
         const token = localStorage.getItem("token");
-        const nuevoEstado = p_estado === true ? false : true;
+        const nuevoEstado = p_estado === 1 ? 0 : 1;
         
         try {
-            const response = await fetch("http://localhost:8080/api/v1/activeOrInactive/"+id, {
+            const response = await fetch(`${API_URL}/api/v1/activeOrInactive/`+id, {
                 method: "PUT",
                 headers: {
                 "Content-Type": "application/json",
@@ -160,7 +164,6 @@ const Home = () => {
             setShowToast(true);
         }
     };
-
 
     return (
     <>
@@ -219,7 +222,7 @@ const Home = () => {
                     <tr key={empresa.id}>
                     <td hidden>{empresa.id}</td>
                     <td hidden>{empresa.documento}</td>
-                    <td>{empresa.razonSocial}</td>
+                    <td>{empresa.razon_social}</td>
                     <td>{empresa.telefono}</td>
                     <td>{empresa.email}</td>
                     <td>{empresa.fechaRegistro}</td>
@@ -239,12 +242,12 @@ const Home = () => {
                             </Button>
                         )}
                         <Button
-                            variant={empresa.estado === true ? "danger" : "success" }
+                            variant={empresa.estado === 1 ? "danger" : "success" }
                             size="sm"
                             className="me-2"
                             onClick={() => activeOrInactive(empresa.id, empresa.estado)}
                         >
-                            {empresa.estado === true ? <BsXCircleFill /> : <BsCheckSquareFill />}
+                            {empresa.estado === 1 ? <BsXCircleFill /> : <BsCheckSquareFill />}
                         </Button>
                         <Button variant="info" size="sm"><BsDownload /></Button>
                     </td>
@@ -280,7 +283,7 @@ const Home = () => {
                                 label="Razon social"
                                 className="mb-3"
                             >   
-                                <Form.Control type="text" value={razonSocial} onChange={(e) => setRazonSocial(e.target.value)} required />
+                                <Form.Control type="text" value={razon_social} onChange={(e) => setrazon_social(e.target.value)} required />
                             </FloatingLabel>
                         </Form.Group>
                         <Form.Group className="mb-4" >

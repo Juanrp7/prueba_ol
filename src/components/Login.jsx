@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Modal, Button, Form } from "react-bootstrap";
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import { jwtDecode } from "jwt-decode";
+import { API_URL } from "../config";
 
 const Login = () => {
 
@@ -15,7 +16,7 @@ const Login = () => {
     
         try {
 
-            const response = await fetch("http://localhost:8080/auth/login", {
+            const response = await fetch(`${API_URL}/auth/login`, {
                 method: "POST",
                 headers: {
                 "Content-Type": "application/json"
