@@ -6,7 +6,7 @@ import { jwtDecode } from "jwt-decode";
 
 const Login = () => {
 
-    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
@@ -20,7 +20,7 @@ const Login = () => {
                 headers: {
                 "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ email, password }),
             });
             
             if (!response.ok) {
@@ -70,8 +70,8 @@ const Login = () => {
             <Modal.Body>
                 <Form onSubmit={handleLogin}>
                     <Form.Group className="mb-4">
-                        <FloatingLabel controlId="username" label="Username" className="mb-3">   
-                            <Form.Control type="text" value={username} onChange={(e) => setUsername(e.target.value)} required/>
+                        <FloatingLabel controlId="email" label="Correo electronico" className="mb-3">   
+                            <Form.Control type="text" value={email} onChange={(e) => setEmail(e.target.value)} required/>
                         </FloatingLabel>
                     </Form.Group>
 

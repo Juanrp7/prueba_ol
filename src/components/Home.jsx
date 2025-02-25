@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
+import { FaEdit } from "react-icons/fa";
+import { BsFillTrash3Fill, BsCheckSquareFill, BsXCircleFill, BsDownload } from "react-icons/bs";
 
 
 const Home = () => {
@@ -26,6 +28,7 @@ const Home = () => {
     const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState("");
     const [municipiosFiltrados, setMunicipiosFiltrados] = useState([]);
     const [municipio, setMunicipioSeleccionado] = useState("");
+    const [estado, setEstado] = useState("");
     
     useEffect(() => {
         fetchData();
@@ -74,7 +77,6 @@ const Home = () => {
         const token = localStorage.getItem("token");
         const endpoint = selectedId ? `http://localhost:8080/api/v1/updateComerciante/${selectedId}` : "http://localhost:8080/api/v1/createComerciante";
         const method = selectedId ? "put" : "post";
-
 
         try {
             await axios[method](endpoint, {
@@ -129,6 +131,31 @@ const Home = () => {
             fetchData(); // Recargar la lista
         } catch (error) {
             setToastMessage("Error al eliminar el comerciante.");
+            setToastVariant("danger");
+            setShowToast(true);
+        }
+    };
+
+
+    const activeOrInactive = async (id, p_estado) => {
+        const token = localStorage.getItem("token");
+        const nuevoEstado = p_estado === true ? false : true;
+        
+        try {
+            const response = await fetch("http://localhost:8080/api/v1/activeOrInactive/"+id, {
+                method: "PUT",
+                headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ estado : nuevoEstado }),
+            });
+            setToastMessage("Se actualizo el registro.");
+            setToastVariant("success");
+            setShowToast(true);
+            fetchData();
+        } catch (error) {
+            setToastMessage("Error al actualizar el registro.");
             setToastVariant("danger");
             setShowToast(true);
         }
@@ -204,21 +231,22 @@ const Home = () => {
                     </td>
                     <td>
                         <Button variant="primary" size="sm" className="me-2" onClick={() => editar(empresa)}>
-                            Editar
+                            <FaEdit />
                         </Button>
                         {userRole === "ADMIN" && (
-                            <Button variant="danger" size="sm" className="me-2" onClick={() => eliminarComerciante(empresa.id)}>
-                                Eliminar
+                            <Button variant="warning" size="sm" className="me-2" onClick={() => eliminarComerciante(empresa.id)}>
+                                <BsFillTrash3Fill />
                             </Button>
                         )}
                         <Button
-                            variant={empresa.estado === "Activo" ? "warning" : "success"}
+                            variant={empresa.estado === true ? "danger" : "success" }
                             size="sm"
                             className="me-2"
+                            onClick={() => activeOrInactive(empresa.id, empresa.estado)}
                         >
-                            {empresa.estado === "Activo" ? "Inactivar" : "Activar"}
+                            {empresa.estado === true ? <BsXCircleFill /> : <BsCheckSquareFill />}
                         </Button>
-                        <Button variant="info" size="sm">Descargar</Button>
+                        <Button variant="info" size="sm"><BsDownload /></Button>
                     </td>
                     </tr>
                 ))}
@@ -242,7 +270,7 @@ const Home = () => {
                                 controlId="floatingInput"
                                 label="Documento"
                                 className="mb-3">   
-                                <Form.Control type="text" value={documento} onChange={(e) => setDocumento(e.target.value)} required/>
+                                <Form.Control type="number" value={documento} onChange={(e) => setDocumento(e.target.value)} required/>
                             </FloatingLabel>
                         </Form.Group>
 
